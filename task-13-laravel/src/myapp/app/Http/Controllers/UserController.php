@@ -1,0 +1,200 @@
+<?php
+
+namespace App\Http\Controllers;
+
+
+use App\Models\User;
+use App\Models\Project;
+use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Illuminate\Support\Facades\Hash;
+
+
+
+class UserController extends Controller
+{
+    /**
+     * Display a listing of the users.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function index()
+    {
+        $users = User::latest()->paginate(5);
+        return view('users.index', compact('users'))
+            ->with('i', (request()->input('page', 1) - 1) * 5);
+    }
+
+    /**
+     * Show the form for creating a new user.
+     *
+     * @return \Illuminate\Http\Response
+     */
+    public function create()
+    {
+        return view('users.create');
+    }
+
+    /**
+     * Store a newly created user in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\Response
+     */
+    public function store(Request $request)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users',
+            'password' => 'required|min:8',
+        ]);
+
+        $user = new User();
+        $user->name = $request->name;
+        $user->email = $request->email;
+        $user->password = Hash::make($request->password);
+        $user->save();
+
+        return redirect()->route('users.index')->with('success', 'User created successfully.');
+    }
+
+
+    /**
+     * Display the specified user.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function show(User $user)
+    {
+        return view('users.show', compact('user'));
+    }
+
+    /**
+     * Show the form for editing the specified user.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function edit(User $user)
+    {
+        return view('users.edit', compact('user'));
+    }
+
+    /**
+     * Update the specified user in storage.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function update(Request $request, User $user)
+    {
+        $request->validate([
+            'name' => 'required',
+            'email' => 'required|email|unique:users,email,' . $user->id,
+            'password' => 'nullable|min:8',
+        ]);
+
+        $user->update($request->all());
+
+        return redirect()->route('users.index')
+            ->with('success', 'User updated successfully');
+    }
+
+    /**
+     * Remove the specified user from storage.
+     *
+     * @param  \App\Models\User  $user
+     * @return \Illuminate\Http\Response
+     */
+    public function destroy(User $user)
+    {
+        $user->delete();
+
+        return redirect()->route('users.index')
+            ->with('success', 'User deleted successfully');
+    }
+
+    public function projects($userId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+            $projects = $user->projects()->paginate(5);
+            return view('users.projects.index', compact('user', 'projects'));
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('users.index')->with('error', 'User not found');
+        }
+    }
+
+
+    public function storeProject(Request $request, $userId)
+    {
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'user_id' => 'required',
+        ]);
+
+        // Create a new project associated with the user specified by $userId
+        Project::create([
+            'name' => $request->name,
+            'description' => $request->description,
+            'user_id' => $userId,
+
+        ]);
+
+        return redirect()->route('users.projects.index', ['userId' => $userId])
+            ->with('success', 'Project created successfully.');
+    }
+
+
+    public function createProject($userId)
+    {
+        return view('users.projects.create', ['userId' => $userId]);
+    }
+
+
+
+    // /**
+    //  * Display the specified project.
+    //  *
+    //  * @param  int  $projectId
+    //  * @return \Illuminate\Http\Response
+    //  */
+    // public function showProject($projectId)
+    // {
+    //     try {
+    //         $project = User::findOrFail($projectId);
+    //         return view('users.projects.show', compact('project'));
+    //     } catch (ModelNotFoundException $e) {
+    //         return redirect()->route('users.index')->with('error', 'Project not found');
+    //     }
+    // }
+
+    // /**
+    //  * Show the form for editing the specified project.
+    //  *
+    //  * @param  int  $projectId
+    //  * @return \Illuminate\Http\Response
+    //  */
+    // public function editProject($projectId)
+    // {
+    //     try {
+    //         $project = User::findOrFail($projectId);
+    //         return view('users.projects.edit', compact('project'));
+    //     } catch (ModelNotFoundException $e) {
+    //         return redirect()->route('users.index')->with('error', 'Project not found');
+    //     }
+    // }
+
+    // public function destroyProjct($projectId)
+    // {
+    //     $projectId->delete();
+
+    //     return redirect()->route('users.projects.index')
+    //         ->with('success', 'Project deleted successfully');
+    // }
+
+
+    }
