@@ -70,24 +70,13 @@ class UserController extends Controller
         return view('users.show', compact('user'));
     }
 
-    /**
-     * Show the form for editing the specified user.
-     *
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
-     */
+    
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
 
-    /**
-     * Update the specified user in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\User  $user
-     * @return \Illuminate\Http\Response
-     */
+   
     public function update(Request $request, User $user)
     {
         $request->validate([
@@ -129,72 +118,74 @@ class UserController extends Controller
 
 
     public function storeProject(Request $request, $userId)
-    {
-        $request->validate([
-            'name' => 'required',
-            'description' => 'required',
-            'user_id' => 'required',
-        ]);
+{
+    $request->validate([
+        'name' => 'required',
+        'description' => 'required',
+    ]);
 
-        // Create a new project associated with the user specified by $userId
-        Project::create([
-            'name' => $request->name,
-            'description' => $request->description,
-            'user_id' => $userId,
+    $user = User::findOrFail($userId);
 
-        ]);
+    $project = $user->projects()->create([
+        'name' => $request->name,
+        'description' => $request->description,
+    ]);
+
+    return redirect()->route('users.projects.index', ['userId' => $userId])
+        ->with('success', 'Project created successfully.');
+}
+
+public function createProject($userId)
+{
+    $user = User::findOrFail($userId);
+
+    return view('users.projects.create', ['userId' => $userId]);
+}
+
+
+    
+    public function deleteProject($userId, $projectId)
+{
+    try {
+        $user = User::findOrFail($userId);
+
+        $project = $user->projects()->findOrFail($projectId);
+
+        $project->delete();
 
         return redirect()->route('users.projects.index', ['userId' => $userId])
-            ->with('success', 'Project created successfully.');
+            ->with('success', 'Project deleted successfully');
+    } catch (ModelNotFoundException $e) {
+        return redirect()->route('users.projects.index', ['userId' => $userId])
+            ->with('error', 'Project not found');
     }
+}
 
 
-    public function createProject($userId)
-    {
-        return view('users.projects.create', ['userId' => $userId]);
-    }
+    public function editProject($userId, $projectId)
+{
+    $user = User::findOrFail($userId);
+    $project = Project::findOrFail($projectId);
+
+    return view('users.projects.edit', compact('user', 'project'));
+}
+
+public function updateProject(Request $request, $userId, $projectId)
+{
+    $request->validate([
+        'name' => 'required',
+        'description' => 'required',
+    ]);
+
+    $project = Project::findOrFail($projectId);
+    $project->update([
+        'name' => $request->name,
+        'description' => $request->description,
+    ]);
+
+    return redirect()->route('users.projects.index', ['userId' => $userId])
+        ->with('success', 'Project updated successfully');
+}
 
 
-
-    // /**
-    //  * Display the specified project.
-    //  *
-    //  * @param  int  $projectId
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function showProject($projectId)
-    // {
-    //     try {
-    //         $project = User::findOrFail($projectId);
-    //         return view('users.projects.show', compact('project'));
-    //     } catch (ModelNotFoundException $e) {
-    //         return redirect()->route('users.index')->with('error', 'Project not found');
-    //     }
-    // }
-
-    // /**
-    //  * Show the form for editing the specified project.
-    //  *
-    //  * @param  int  $projectId
-    //  * @return \Illuminate\Http\Response
-    //  */
-    // public function editProject($projectId)
-    // {
-    //     try {
-    //         $project = User::findOrFail($projectId);
-    //         return view('users.projects.edit', compact('project'));
-    //     } catch (ModelNotFoundException $e) {
-    //         return redirect()->route('users.index')->with('error', 'Project not found');
-    //     }
-    // }
-
-    // public function destroyProjct($projectId)
-    // {
-    //     $projectId->delete();
-
-    //     return redirect()->route('users.projects.index')
-    //         ->with('success', 'Project deleted successfully');
-    // }
-
-
-    }
+}

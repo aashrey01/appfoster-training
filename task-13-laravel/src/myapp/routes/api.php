@@ -21,8 +21,6 @@ Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
 
-// Route::get('/users', [UserController::class, 'index']);
-// Route::get('/user/{userId}/projects', [ProjectController::class, 'index']);
 
 Route::get('/users', [UserController::class, 'index'])->name('users.index');
 Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
@@ -37,14 +35,13 @@ Route::get('/users/{userId}/projects', [UserController::class, 'projects'])->nam
 Route::get('/users/{userId}/projects/create', [UserController::class, 'createProject'])->name('users.projects.create');
 Route::post('/users/{userId}/projects', [UserController::class, 'storeProject'])->name('users.projects.store');
 
-    
-// Route::get('/users/{userId}/projects/back', [UserController::class, 'backToProjectsIndex'])->name('users.projects.back');
 
-// Route::get('/users/{userId}/projects/1}', [UserController::class, 'showProject'])->name('users.projects.show');
-// Route::get('/users/{userId}/projects/1/edit', [UserController::class, 'editProject'])->name('users.projects.edit');
+Route::delete('/users/{userId}/projects/{projectId}', [UserController::class, 'deleteProject'])->name('users.projects.delete');
 
-// Route::get('/users/{userId}/projects/1', [UserController::class, 'destroyProject'])->name('users.projects.destroy');
 
+
+Route::get('/users/{userId}/projects/{projectId}/edit', [UserController::class, 'editProject'])->name('users.projects.edit');
+Route::put('/users/{userId}/projects/{projectId}', [UserController::class, 'updateProject'])->name('users.projects.update');
 
 
 /*
