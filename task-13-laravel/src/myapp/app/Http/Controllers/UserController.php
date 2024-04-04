@@ -70,13 +70,13 @@ class UserController extends Controller
         return view('users.show', compact('user'));
     }
 
-    
+
     public function edit(User $user)
     {
         return view('users.edit', compact('user'));
     }
 
-   
+
     public function update(Request $request, User $user)
     {
         $request->validate([
@@ -118,74 +118,72 @@ class UserController extends Controller
 
 
     public function storeProject(Request $request, $userId)
-{
-    $request->validate([
-        'name' => 'required',
-        'description' => 'required',
-    ]);
+    {
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+        ]);
 
-    $user = User::findOrFail($userId);
-
-    $project = $user->projects()->create([
-        'name' => $request->name,
-        'description' => $request->description,
-    ]);
-
-    return redirect()->route('users.projects.index', ['userId' => $userId])
-        ->with('success', 'Project created successfully.');
-}
-
-public function createProject($userId)
-{
-    $user = User::findOrFail($userId);
-
-    return view('users.projects.create', ['userId' => $userId]);
-}
-
-
-    
-    public function deleteProject($userId, $projectId)
-{
-    try {
         $user = User::findOrFail($userId);
 
-        $project = $user->projects()->findOrFail($projectId);
-
-        $project->delete();
+        $project = $user->projects()->create([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
 
         return redirect()->route('users.projects.index', ['userId' => $userId])
-            ->with('success', 'Project deleted successfully');
-    } catch (ModelNotFoundException $e) {
-        return redirect()->route('users.projects.index', ['userId' => $userId])
-            ->with('error', 'Project not found');
+            ->with('success', 'Project created successfully.');
     }
-}
+
+    public function createProject($userId)
+    {
+        $user = User::findOrFail($userId);
+
+        return view('users.projects.create', ['userId' => $userId]);
+    }
+
+
+
+    public function deleteProject($userId, $projectId)
+    {
+        try {
+            $user = User::findOrFail($userId);
+
+            $project = $user->projects()->findOrFail($projectId);
+
+            $project->delete();
+
+            return redirect()->route('users.projects.index', ['userId' => $userId])
+                ->with('success', 'Project deleted successfully');
+        } catch (ModelNotFoundException $e) {
+            return redirect()->route('users.projects.index', ['userId' => $userId])
+                ->with('error', 'Project not found');
+        }
+    }
 
 
     public function editProject($userId, $projectId)
-{
-    $user = User::findOrFail($userId);
-    $project = Project::findOrFail($projectId);
+    {
+        $user = User::findOrFail($userId);
+        $project = Project::findOrFail($projectId);
 
-    return view('users.projects.edit', compact('user', 'project'));
-}
+        return view('users.projects.edit', compact('user', 'project'));
+    }
 
-public function updateProject(Request $request, $userId, $projectId)
-{
-    $request->validate([
-        'name' => 'required',
-        'description' => 'required',
-    ]);
+    public function updateProject(Request $request, $userId, $projectId)
+    {
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+        ]);
 
-    $project = Project::findOrFail($projectId);
-    $project->update([
-        'name' => $request->name,
-        'description' => $request->description,
-    ]);
+        $project = Project::findOrFail($projectId);
+        $project->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
 
-    return redirect()->route('users.projects.index', ['userId' => $userId])
-        ->with('success', 'Project updated successfully');
-}
-
-
+        return redirect()->route('users.projects.index', ['userId' => $userId])
+            ->with('success', 'Project updated successfully');
+    }
 }
